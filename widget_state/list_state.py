@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import Callable, Optional, Union
+import typing
+from typing import Any, Callable, Optional, Union
+
+if typing.TYPE_CHECKING:
+    from _typeshed import SupportsDunderLT, SupportsDunderGT
 
 from .state import State
-from .types import Serializable
+from .types import Serializable, SupportsLT
 
 
 class _ElementObserver:
@@ -108,7 +112,7 @@ class ListState(State):
         self.notify_change()
 
     def sort(
-        self, key: Optional[Callable[[State], Union[str | int | float]]] = None
+        self, key: Callable[[State], SupportsDunderLT[Any] | SupportsDunderGT[Any]]
     ) -> None:
         self._list.sort(key=key)
         self.notify_change()
