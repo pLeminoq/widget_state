@@ -1,6 +1,4 @@
-import pytest
-
-from widget_state import FloatState, HigherOrderState, computed_state, IntState
+from widget_state import FloatState, HigherOrderState, computed_state
 
 from .util import MockCallback
 

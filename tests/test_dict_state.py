@@ -1,5 +1,3 @@
-from typing import TypeGuard
-
 import pytest
 
 from widget_state import IntState, DictState

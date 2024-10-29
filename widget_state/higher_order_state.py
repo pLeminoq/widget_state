@@ -56,7 +56,9 @@ class HigherOrderState(State):
         -------
         Dict[str, State]
         """
-        labels = list(filter(lambda l: not l.startswith("_"), self.__dict__.keys()))
+        labels = list(
+            filter(lambda label: not label.startswith("_"), self.__dict__.keys())
+        )
         return {label: getattr(self, label) for label in labels}
 
     def serialize(self) -> Serializable:

@@ -109,7 +109,7 @@ def test_pop(observed_list_state: ListState, callback: MockCallback) -> None:
 
     assert len(observed_list_state) == 2
     assert _state not in observed_list_state
-    assert _state._parent == None
+    assert _state._parent is None
     assert observed_list_state._elem_obs not in _state._callbacks
 
 
@@ -119,7 +119,7 @@ def test_remove(observed_list_state: ListState, callback: MockCallback) -> None:
 
     assert len(observed_list_state) == 2
     assert _state not in observed_list_state
-    assert _state._parent == None
+    assert _state._parent is None
     assert observed_list_state._elem_obs not in _state._callbacks
 
 
@@ -129,7 +129,7 @@ def test_clear(observed_list_state: ListState, callback: MockCallback) -> None:
 
     assert len(observed_list_state) == 0
     assert callback.n_calls == 1
-    assert _state._parent == None
+    assert _state._parent is None
     assert observed_list_state._elem_obs not in _state._callbacks
 
 
