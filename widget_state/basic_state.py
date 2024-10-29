@@ -1,3 +1,8 @@
+"""
+A basic state is a wrapper around a single value.
+Either a generic object or a primitive.
+"""
+
 from __future__ import annotations
 
 from collections.abc import Iterable
@@ -75,7 +80,6 @@ class BasicState(State):
         self,
         states: Iterable[State],
         compute_value: Callable[[], Any],
-        init: bool = False,
         element_wise: bool = False,
     ) -> None:
         """
@@ -90,8 +94,6 @@ class BasicState(State):
             the states self depends on
         compute_value: callable
             function which computes the value of this state
-        init: bool
-            if true, self is initialized by `compute_value`
         element_wise: bool
             trigger on element-wise changes of `ListState`
         """
@@ -109,16 +111,38 @@ class BasicState(State):
     def transform(
         self, self_to_other: Callable[[BasicState], BasicState]
     ) -> BasicState:
+        """
+        Transform this state into another state.
+
+        The new state is reactive to the changes of the old state.
+
+        Parameters
+        ----------
+        self_to_other: Callable
+            a function that transforms this state into a different state
+
+
+        Returns
+        -------
+        BasicState
+        """
         other_state = self_to_other(self)
-        callback = lambda _self: other_state.set(self_to_other(_self).value)
-        self.on_change(callback)
+
+        def _callback(_self: State) -> None:
+            assert isinstance(_self, BasicState)
+            other_state.set(self_to_other(_self).value)
+
+        self.on_change(_callback)
         return other_state
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}[value={self.value}]"
 
     def serialize(self) -> Serializable:
-        raise NotImplementedError(f"Unable to serialize abstract basic state")
+        raise NotImplementedError("Unable to serialize abstract basic state")
+
+    def deserialize(self, _dict: Serializable):
+        raise NotImplementedError("Unable to deserialize abstract basic state")
 
 
 class IntState(BasicState):

@@ -1,13 +1,24 @@
+"""
+Decorator to create computed states.
+
+A computed state is the result of applying a function to other states.
+If one of these states changes, the compute state is computed anew.
+"""
+
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any, Callable, ParamSpec, TypeVar
 
 from .basic_state import BasicState
+from .state import State
+
+T = TypeVar("T", bound=BasicState)
+P = ParamSpec("P")
 
 
 def computed_state(
-    func: Callable[[BasicState], BasicState]
-) -> Callable[[BasicState], BasicState]:
+    func: Callable[P, T],
+) -> Callable[P, T]:
     """
     Computed annotation for states.
 
@@ -30,29 +41,23 @@ def computed_state(
             return IntState(number.value * number.value)
 
     """
-    # save function name and argument names
-    name = func.__name__
-    varnames = func.__code__.co_varnames[1:]
 
-    def wrapped(*args: BasicState) -> BasicState:
+    def wrapped(*args: P.args, **kwargs: P.kwargs) -> T:
         # compute initial value
-        computed_value = func(*args)
+        computed_value = func(*args, **kwargs)
 
         # create function that updates the computed value
         def _on_change(_: Any) -> None:
-            computed_value.value = func(*args).value
+            computed_value.value = func(*args, **kwargs).value
 
         # handling of computed states as values of higher states
         _args = args[1:] if func.__code__.co_varnames[0] == "self" else args
 
-        # validate arguments are states
-        for _arg in _args:
-            assert isinstance(
-                _arg, BasicState
-            ), f"Variable {_arg} of computed state {func.__name__} is not a basic state"
-
         # register callback on depending state
         for _arg in _args:
+            assert isinstance(
+                _arg, State
+            ), f"Variable {_arg} of computed state {func.__name__} is not a basic state"
             _arg.on_change(_on_change)
 
         # return computed value

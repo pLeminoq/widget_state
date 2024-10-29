@@ -1,3 +1,7 @@
+"""
+Definition of a HigherOrderState - a state that groups other states.
+"""
+
 from __future__ import annotations
 
 from typing import Any, Union
@@ -15,9 +19,6 @@ class HigherOrderState(State):
     If a value (not a state) is added to a higher state, it will automatically be wrapped into
     a state type.
     """
-
-    def __init__(self) -> None:
-        super().__init__()
 
     def __setattr__(self, name: str, new_value: Union[Any, State]) -> None:
         # ignore private attributes (begin with an underscore)
@@ -56,7 +57,7 @@ class HigherOrderState(State):
         Dict[str, State]
         """
         labels = list(filter(lambda l: not l.startswith("_"), self.__dict__.keys()))
-        return dict([(label, self.__getattribute__(label)) for label in labels])
+        return {label: getattr(self, label) for label in labels}
 
     def serialize(self) -> Serializable:
         res = {}
@@ -73,7 +74,7 @@ class HigherOrderState(State):
         ), "HigherState can only be serialized from dict[str, Serializable]"
         with self:
             for key, value in _dict.items():
-                attr = self.__getattribute__(key)
+                attr = getattr(self, key)
 
                 if issubclass(type(attr), BasicState):
                     attr._active = False
@@ -87,6 +88,17 @@ class HigherOrderState(State):
         return self.to_str()
 
     def to_str(self, padding: int = 0) -> str:
+        """
+        Create a string representation of this HigherOrderState.
+
+        The padding parameter is used to recursively print internal
+        HigherOrderStates.
+
+        Parameters
+        ----------
+        padding: int
+            padding applied to each line in the resulting string
+        """
         _strs = []
         for key, value in self.dict().items():
             if isinstance(value, HigherOrderState):

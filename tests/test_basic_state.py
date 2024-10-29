@@ -82,13 +82,14 @@ def test_depends_on(callback: MockCallback) -> None:
     list_state = ListState([IntState(1), IntState(2)])
     float_state = FloatState(3.5)
 
-    def compute_sum(*args):
-        return sum(map(lambda _state: _state.value, [float_state, *list_state]))
+    def compute_sum() -> float:
+        _sum = sum(map(lambda _state: _state.value, [float_state, *list_state]))
+        assert isinstance(_sum, float)
+        return _sum
 
     res_state.depends_on(
         [list_state, float_state],
         compute_value=compute_sum,
-        init=True,
         element_wise=True,
     )
     assert res_state.value == (1 + 2 + 3.5)
@@ -96,6 +97,7 @@ def test_depends_on(callback: MockCallback) -> None:
     float_state.value = 2.4
     assert res_state.value == (1 + 2 + 2.4)
 
+    assert isinstance(list_state[0], IntState)  # check for typing
     list_state[0].value = 3
     assert res_state.value == (3 + 2 + 2.4)
 

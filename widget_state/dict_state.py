@@ -2,10 +2,11 @@
 Module containing the definition of the `DictState`.
 A higher order state that contains only basic states as child states.
 """
+
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import Any, Union
+from typing import Any
 
 from .basic_state import BasicState
 from .higher_order_state import HigherOrderState
@@ -19,21 +20,21 @@ class DictState(HigherOrderState):
     It enables iteration, access by index and other utility functions.
     """
 
-    def __init__(self, _dict: dict[str, Union[BasicState, Primitive]]) -> None:
+    def __init__(self) -> None:
         """
-        Initialize a sequence state.
-
-        Parameters
-        ----------
-        _dict: dict of basic states or primitives
-            mapping from label to value
+        Initialize a dict state.
         """
         super().__init__()
-        self._labels = list(_dict.keys())
-        print(self._labels)
+        self._labels: list[str] = []
 
-        for label, value in _dict.items():
-            setattr(self, label, value)
+    def __setattr__(self, name: str, new_value: Any | BasicState) -> None:
+        super().__setattr__(name, new_value)
+
+        if name[0] == "_":
+            return
+
+        if name not in self._labels:
+            self._labels.append(name)
 
     def __getitem__(self, i: int) -> BasicState:
         item = self.__getattribute__(self._labels[i])
@@ -52,7 +53,7 @@ class DictState(HigherOrderState):
         """
         return [attr.value for attr in self]
 
-    def set(self, *args: BasicState) -> None:
+    def set(self, *args: BasicState | Primitive) -> None:
         """
         Reassign all internal basic state values and only
         trigger a notification afterwards.

@@ -1,6 +1,17 @@
+"""
+Definition of a HigherOrderState.
+This is a state with other states as values.
+"""
+
 import pytest
 
-from widget_state import FloatState, IntState, StringState, ObjectState, HigherOrderState
+from widget_state import (
+    FloatState,
+    IntState,
+    StringState,
+    ObjectState,
+    HigherOrderState,
+)
 
 from .util import MockCallback
 
@@ -10,75 +21,81 @@ def callback() -> MockCallback:
     return MockCallback()
 
 
+class NestedState(HigherOrderState):
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.length = FloatState(3.141)
+
+
+class SuperState(HigherOrderState):
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.name = StringState("Higher")
+        self.count = IntState(5)
+        self.nested = NestedState()
+
+
 @pytest.fixture
-def higher_order_state() -> HigherOrderState:
-    state = HigherOrderState()
-    state.name = "Higher"
-    state.count = 5
-    state.internal = HigherOrderState()
-    state.internal.length = 3.141
-    return state
+def super_state() -> SuperState:
+    return SuperState()
 
 
-def test_set_attr(higher_order_state, callback):
-    higher_order_state.on_change(callback)
+def test_set_attr(super_state: SuperState, callback: MockCallback) -> None:
+    super_state.on_change(callback)
 
-    assert isinstance(higher_order_state.name, StringState)
-    assert higher_order_state.name.value == "Higher"
+    assert super_state.name.value == "Higher"
+    assert super_state.count.value == 5
+    assert super_state.nested.length.value == 3.141
 
-    assert isinstance(higher_order_state.count, IntState)
-    assert higher_order_state.count.value == 5
-
-    assert isinstance(higher_order_state.internal.length, FloatState)
-    assert higher_order_state.internal.length.value == 3.141
-
-    higher_order_state.name.value = "Even higher"
-    higher_order_state.count.value = 7
-    higher_order_state.internal.length.value = 2.714
+    super_state.name.value = "Even higher"
+    super_state.count.value = 7
+    super_state.nested.length.value = 2.714
     assert callback.n_calls == 3
 
 
-def test_dict(higher_order_state):
-    _dict = higher_order_state.dict()
+def test_dict(super_state: SuperState) -> None:
+    _dict = super_state.dict()
     assert _dict == {
-        "name": higher_order_state.name,
-        "count": higher_order_state.count,
-        "internal": higher_order_state.internal,
+        "name": super_state.name,
+        "count": super_state.count,
+        "nested": super_state.nested,
     }
 
 
-def test_serialize(higher_order_state):
-    serialized = higher_order_state.serialize()
-    assert serialized == {"name": "Higher", "count": 5, "internal": {"length": 3.141}}
+def test_serialize(super_state: SuperState) -> None:
+    serialized = super_state.serialize()
+    assert serialized == {"name": "Higher", "count": 5, "nested": {"length": 3.141}}
 
 
-def test_serialize_with_unserializable(higher_order_state):
-    higher_order_state.obj = ObjectState(123)
+def test_serialize_with_unserializable(super_state: SuperState) -> None:
+    super_state.obj = ObjectState(123)
 
-    serialized = higher_order_state.serialize()
+    serialized = super_state.serialize()
     # states which are not serializable should be ignored on serialization
-    assert serialized == {"name": "Higher", "count": 5, "internal": {"length": 3.141}}
+    assert serialized == {"name": "Higher", "count": 5, "nested": {"length": 3.141}}
 
 
-def test_deserialize(higher_order_state, callback):
-    higher_order_state.on_change(callback)
-    higher_order_state.deserialize(
-        {"name": "Test", "count": 7, "internal": {"length": 2.714}}
-    )
+def test_deserialize(super_state: SuperState, callback: MockCallback) -> None:
+    super_state.on_change(callback)
+    super_state.deserialize({"name": "Test", "count": 7, "nested": {"length": 2.714}})
 
-    assert higher_order_state.name.value == "Test"
-    assert higher_order_state.count.value == 7
-    assert higher_order_state.internal.length.value == 2.714
+    assert super_state.name.value == "Test"
+    assert super_state.count.value == 7
+    assert super_state.nested.length.value == 2.714
     assert callback.n_calls == 1
 
 
-_str ="""\
-[HigherOrderState]:
+_str = """\
+[SuperState]:
  - name: StringState[value="Higher"]
  - count: IntState[value=5]
- - internal[HigherOrderState]:
+ - nested[NestedState]:
   - length: FloatState[value=3.141]\
 """
-def test_to_str(higher_order_state):
-    assert higher_order_state.to_str() == _str
-    assert str(higher_order_state) == _str
+
+
+def test_to_str(super_state: SuperState) -> None:
+    assert super_state.to_str() == _str
+    assert str(super_state) == _str

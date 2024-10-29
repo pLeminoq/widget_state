@@ -1,25 +1,25 @@
 import pytest
 
-from widget_state import FloatState, HigherOrderState, computed_state
+from widget_state import FloatState, HigherOrderState, computed_state, IntState
 
 from .util import MockCallback
 
 
 class Sum(HigherOrderState):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-        self.a = 0.5
-        self.b = 2.0
-        self.sum = self.sum(self.a, self.b)
+        self.a = FloatState(0.5)
+        self.b = FloatState(2.0)
+        self.sum = self.compute_sum(self.a, self.b)
 
     @computed_state
-    def sum(self, a, b):
+    def compute_sum(self, a: FloatState, b: FloatState) -> FloatState:
         return FloatState(a.value + b.value)
 
 
-def test_computed_state():
+def test_computed_state() -> None:
     callback = MockCallback()
     _sum = Sum()
     _sum.on_change(callback)

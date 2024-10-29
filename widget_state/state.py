@@ -1,6 +1,7 @@
 """
 Definition of the basic state class.
 """
+
 from __future__ import annotations
 
 from typing import Any, Callable, List, Optional, Union
@@ -8,7 +9,7 @@ from typing import Any, Callable, List, Optional, Union
 from .types import Serializable
 
 
-class State(object):
+class State:
     """
     A state is a reactive wrapping around values.
 
@@ -25,6 +26,11 @@ class State(object):
         self._parent: Optional[State] = None
 
     def root(self) -> State:
+        """
+        Get the `root` state.
+
+        This is the parent state without a parent.
+        """
         if self._parent is None:
             return self
         return self._parent.root()
@@ -57,6 +63,14 @@ class State(object):
     def remove_callback(
         self, callback_or_id: Union[Callable[[State], None], int]
     ) -> None:
+        """
+        Remove a callback registered with `on_change`.
+
+        Parameters
+        ----------
+        callback_or_id: callback or id
+            either the callback or its id to be removed
+        """
         if isinstance(callback_or_id, int):
             self._callbacks.pop(callback_or_id)
         else:
@@ -93,10 +107,14 @@ class State(object):
         """
         Translate the state into a value that can be serialized as `json` or `yaml`.
         """
-        raise NotImplementedError("Serialize not implemented for abtract base class `State`")
+        raise NotImplementedError(
+            "Serialize not implemented for abtract base class `State`"
+        )
 
     def deserialize(self, _value: Serializable) -> None:
         """
         Resolve the state from a value deserialized by `json` or `yaml`.
         """
-        raise NotImplementedError("Deserialize not implemented for abtract base class `State`")
+        raise NotImplementedError(
+            "Deserialize not implemented for abtract base class `State`"
+        )
