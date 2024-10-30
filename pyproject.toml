@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "widget_state"
+version = "0.0.1"
+authors = [
+  { name="Tamino Huxohl", email="thuxohl@mailbox.org"  },
+]
+description = "Reactive wrapping around values for GUI applications"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/pLeminoq/widget_state"
+
