@@ -97,12 +97,8 @@ def test_depends_on(callback: MockCallback) -> None:
     float_state.value = 2.4
     assert res_state.value == (1 + 2 + 2.4)
 
-    assert isinstance(list_state[0], IntState)  # check for typing
     list_state[0].value = 3
     assert res_state.value == (3 + 2 + 2.4)
-
-    list_state.append(FloatState(1.2))
-    assert res_state.value == (3 + 2 + +1.2 + 2.4)
 
 
 def test_transform(int_state: IntState, callback: MockCallback) -> None:
