@@ -17,6 +17,7 @@ if typing.TYPE_CHECKING:
 
 T = TypeVar("T", bound=State)
 
+
 class _ElementObserver:
     """
     Utility class that keeps track of all callbacks observing element-wise changes of a list state.

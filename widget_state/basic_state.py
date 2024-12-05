@@ -15,6 +15,7 @@ from .types import Serializable
 T = TypeVar("T")
 R = TypeVar("R")
 
+
 class BasicState(State, Generic[T]):
     """
     A basic state contains a single value.
