@@ -27,7 +27,7 @@ class DictState(HigherOrderState):
         super().__init__()
         self._labels: list[str] = []
 
-    def __setattr__(self, name: str, new_value: Any | BasicState) -> None:
+    def __setattr__(self, name: str, new_value: Any | BasicState[Any]) -> None:
         super().__setattr__(name, new_value)
 
         if name[0] == "_":
@@ -36,12 +36,12 @@ class DictState(HigherOrderState):
         if name not in self._labels:
             self._labels.append(name)
 
-    def __getitem__(self, i: int) -> BasicState:
+    def __getitem__(self, i: int) -> BasicState[Any]:
         item = self.__getattribute__(self._labels[i])
         assert isinstance(item, BasicState)
         return item
 
-    def __iter__(self) -> Iterator[BasicState]:
+    def __iter__(self) -> Iterator[BasicState[Any]]:
         return iter(map(self.__getattribute__, self._labels))
 
     def __len__(self) -> int:
@@ -53,7 +53,7 @@ class DictState(HigherOrderState):
         """
         return [attr.value for attr in self]
 
-    def set(self, *args: BasicState | Primitive) -> None:
+    def set(self, *args: BasicState[Any] | Primitive) -> None:
         """
         Reassign all internal basic state values and only
         trigger a notification afterwards.
@@ -62,4 +62,4 @@ class DictState(HigherOrderState):
 
         with self:
             for i, arg in enumerate(args):
-                self[i].value = arg
+                self[i].value = arg.value if isinstance(arg, BasicState) else arg
