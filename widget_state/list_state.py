@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 import typing
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Generic, Optional, TypeVar, Union
 
 from .state import State
 from .types import Serializable
@@ -15,13 +15,14 @@ from .types import Serializable
 if typing.TYPE_CHECKING:
     from _typeshed import SupportsDunderLT, SupportsDunderGT
 
+T = TypeVar("T", bound=State)
 
 class _ElementObserver:
     """
     Utility class that keeps track of all callbacks observing element-wise changes of a list state.
     """
 
-    def __init__(self, list_state: ListState) -> None:
+    def __init__(self, list_state: ListState[T]) -> None:
         """
         Initialize an `_ElementObserver`.
 
@@ -38,12 +39,12 @@ class _ElementObserver:
             cb(self._list_state)
 
 
-class ListState(State):
+class ListState(State, Generic[T]):
     """
     A list of states.
     """
 
-    def __init__(self, _list: Optional[list[State]] = None) -> None:
+    def __init__(self, _list: Optional[list[T]] = None) -> None:
         """
         Initial a `ListState`.
 
@@ -56,7 +57,7 @@ class ListState(State):
 
         self._elem_obs = _ElementObserver(self)
 
-        self._list: list[State] = []
+        self._list: list[T] = []
         self.extend(_list if _list is not None else [])
 
     def on_change(
@@ -82,7 +83,7 @@ class ListState(State):
         if cb in self._elem_obs._callbacks:
             self._elem_obs._callbacks.remove(cb)
 
-    def append(self, elem: State) -> None:
+    def append(self, elem: T) -> None:
         """
         Append a `State` to the list and notify.
 
@@ -110,7 +111,7 @@ class ListState(State):
 
         self.notify_change()
 
-    def extend(self, _list: list[State]) -> None:
+    def extend(self, _list: list[T]) -> None:
         """
         Extend the list and notify.
 
@@ -124,7 +125,7 @@ class ListState(State):
             for elem in _list:
                 self.append(elem)
 
-    def insert(self, index: int, elem: State) -> None:
+    def insert(self, index: int, elem: T) -> None:
         """
         Insert an element at `index` into the list and notify.
 
@@ -165,7 +166,7 @@ class ListState(State):
 
         return elem
 
-    def remove(self, elem: State) -> None:
+    def remove(self, elem: T) -> None:
         """
         Remove an element from the list and notify.
 
@@ -189,7 +190,7 @@ class ListState(State):
         self.notify_change()
 
     def sort(
-        self, key: Callable[[State], SupportsDunderLT[Any] | SupportsDunderGT[Any]]
+        self, key: Callable[[T], SupportsDunderLT[Any] | SupportsDunderGT[Any]]
     ) -> None:
         """
         Wrapper to the sort method of the internal list.
@@ -205,10 +206,10 @@ class ListState(State):
         self._list.sort(key=key)
         self.notify_change()
 
-    def __getitem__(self, i: int) -> State:
+    def __getitem__(self, i: int) -> T:
         return self._list[i]
 
-    def index(self, elem: State) -> int:
+    def index(self, elem: T) -> int:
         """
         Wrapper to the index method of the internal list.
 
@@ -223,7 +224,7 @@ class ListState(State):
         """
         return self._list.index(elem)
 
-    def __iter__(self) -> Iterator[State]:
+    def __iter__(self) -> Iterator[T]:
         return iter(self._list)
 
     def __len__(self) -> int:

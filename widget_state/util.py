@@ -12,7 +12,7 @@ from typing import Any, Callable, ParamSpec, TypeVar
 from .basic_state import BasicState
 from .state import State
 
-T = TypeVar("T", bound=BasicState)
+T = TypeVar("T", bound=BasicState[Any])
 P = ParamSpec("P")
 
 

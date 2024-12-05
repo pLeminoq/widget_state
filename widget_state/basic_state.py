@@ -6,14 +6,16 @@ Either a generic object or a primitive.
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Generic, Optional, TypeVar
 
 from .state import State
 from .list_state import ListState
 from .types import Serializable
 
+T = TypeVar("T")
+R = TypeVar("R")
 
-class BasicState(State):
+class BasicState(State, Generic[T]):
     """
     A basic state contains a single value.
 
@@ -22,7 +24,7 @@ class BasicState(State):
     if the value changed on reassignment.
     """
 
-    def __init__(self, value: Any, verify_change: bool = True) -> None:
+    def __init__(self, value: T, verify_change: bool = True) -> None:
         """
         Initialize a basic state:
 
@@ -39,7 +41,7 @@ class BasicState(State):
 
         self.value = value
 
-    def __setattr__(self, name: str, new_value: Any) -> None:
+    def __setattr__(self, name: str, new_value: T) -> None:
         # ignore private attributes (begin with an underscore)
         if name[0] == "_":
             super().__setattr__(name, new_value)
@@ -63,7 +65,7 @@ class BasicState(State):
         # notify that the value changed
         self.notify_change()
 
-    def set(self, value: Any) -> None:
+    def set(self, value: T) -> None:
         """
         Simple function for the assignment of the value.
 
@@ -79,7 +81,7 @@ class BasicState(State):
     def depends_on(
         self,
         states: Iterable[State],
-        compute_value: Callable[[], Any],
+        compute_value: Callable[[], T],
         element_wise: bool = False,
     ) -> None:
         """
@@ -109,8 +111,8 @@ class BasicState(State):
         self.set(compute_value())
 
     def transform(
-        self, self_to_other: Callable[[BasicState], BasicState]
-    ) -> BasicState:
+        self, self_to_other: Callable[[BasicState[T]], BasicState[R]]
+    ) -> BasicState[R]:
         """
         Transform this state into another state.
 
@@ -141,11 +143,11 @@ class BasicState(State):
     def serialize(self) -> Serializable:
         raise NotImplementedError("Unable to serialize abstract basic state")
 
-    def deserialize(self, _dict: Serializable):
+    def deserialize(self, _dict: Serializable) -> None:
         raise NotImplementedError("Unable to deserialize abstract basic state")
 
 
-class IntState(BasicState):
+class IntState(BasicState[int]):
     """
     Implementation of the `BasicState` for an int.
     """
@@ -158,7 +160,7 @@ class IntState(BasicState):
         return self.value
 
 
-class FloatState(BasicState):
+class FloatState(BasicState[float]):
     """
     Implementation of the `BasicState` for a float.
 
@@ -182,7 +184,7 @@ class FloatState(BasicState):
         return self.value
 
 
-class StringState(BasicState):
+class StringState(BasicState[str]):
     """
     Implementation of the `BasicState` for a string.
     """
@@ -198,7 +200,7 @@ class StringState(BasicState):
         return f'{type(self).__name__}[value="{self.value}"]'
 
 
-class BoolState(BasicState):
+class BoolState(BasicState[bool]):
     """
     Implementation of the `BasicState` for a bool.
     """
@@ -211,7 +213,7 @@ class BoolState(BasicState):
         return self.value
 
 
-class ObjectState(BasicState):
+class ObjectState(BasicState[Any]):
     """
     Implementation of the `BasicState` for objects.
 
