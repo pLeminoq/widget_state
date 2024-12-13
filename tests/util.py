@@ -4,7 +4,6 @@ from widget_state import State
 
 
 class MockCallback:
-
     def __init__(self) -> None:
         self.n_calls = 0
         self.arg: Optional[State] = None

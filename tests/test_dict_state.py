@@ -4,7 +4,6 @@ from widget_state import IntState, DictState
 
 
 class VectorState(DictState):
-
     def __init__(self, x: int, y: int, z: int):
         super().__init__()
 

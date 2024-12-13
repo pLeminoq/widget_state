@@ -22,14 +22,12 @@ def callback() -> MockCallback:
 
 
 class NestedState(HigherOrderState):
-
     def __init__(self) -> None:
         super().__init__()
         self.length = FloatState(3.141)
 
 
 class SuperState(HigherOrderState):
-
     def __init__(self) -> None:
         super().__init__()
         self.name = StringState("Higher")
