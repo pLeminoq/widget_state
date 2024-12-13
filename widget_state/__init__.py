@@ -14,7 +14,7 @@ from .basic_state import (
     ObjectState,
 )
 from .dict_state import DictState
-from .higher_order_state import HigherOrderState
+from .higher_order_state import HigherOrderState, computed
 from .list_state import ListState
 from .state import State
 from .types import Serializable, Primitive
@@ -35,4 +35,5 @@ __all__ = [
     "Serializable",
     "Primitive",
     "computed_state",
+    "computed",
 ]
