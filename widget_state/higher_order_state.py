@@ -118,22 +118,25 @@ class HigherOrderState(State):
             if not all(map(lambda param_name: hasattr(self, param_name), func.params)):
                 continue
 
-            # initialize computed state
             params = list(
                 map(lambda param_name: getattr(self, param_name), func.params)
             )
-            self.__dict__[computed_state_name] = func(*params)
+
+            # skip if a param is not a state
+            # this can happen if a computed states depends on another computed state
+            if not all(map(lambda param: isinstance(param, State), params)):
+                continue
 
             # re-compute every time a parameter changes
             for param in params:
-                # print(
-                #     f" - Regster callback with {computed_state_name=} for param {param}"
-                # )
                 param.on_change(
                     lambda _, _name=computed_state_name: self._update_computed_state(
                         _name
                     )
                 )
+
+            # initialize computed state
+            self.__setattr__(computed_state_name, func(*params))
 
     def dict(self) -> dict[str, State]:
         """
