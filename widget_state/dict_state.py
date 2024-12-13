@@ -53,13 +53,23 @@ class DictState(HigherOrderState):
         """
         return [attr.value for attr in self]
 
-    def set(self, *args: BasicState[Any] | Primitive) -> None:
+    def set(
+        self,
+        *args: BasicState[Any] | Primitive,
+        **kwargs: BasicState[Any] | Primitive,
+    ) -> None:
         """
-        Reassign all internal basic state values and only
+        Reassign internal basic state values and only
         trigger a notification afterwards.
         """
-        assert len(args) == len(self)
+        assert len(args) <= len(self)
 
         with self:
             for i, arg in enumerate(args):
                 self[i].value = arg.value if isinstance(arg, BasicState) else arg
+
+            _dict = self.dict()
+            for name, kwarg in kwargs.items():
+                attr = _dict[name]
+                assert isinstance(attr, BasicState)
+                attr.value = kwarg.value if isinstance(kwarg, BasicState) else kwarg

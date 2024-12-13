@@ -164,3 +164,12 @@ def test_serialize(list_state: ListState) -> None:
 def test_deserialize(list_state: ListState) -> None:
     with pytest.raises(NotImplementedError):
         list_state.deserialize([0, 1, 2])
+
+
+def test_copy_from(list_state: ListState) -> None:
+    new_list: ListState[IntState] = ListState()
+    new_list.copy_from(list_state)
+
+    assert len(new_list) == len(list_state)
+    for i in range(len(new_list)):
+        assert new_list[i].value == list_state[i].value

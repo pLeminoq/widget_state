@@ -4,7 +4,6 @@ from .util import MockCallback
 
 
 class Sum(HigherOrderState):
-
     def __init__(self) -> None:
         super().__init__()
 

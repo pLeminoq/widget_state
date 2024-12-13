@@ -76,3 +76,8 @@ def test_serialize(state: State) -> None:
 def test_deserialize(state: State) -> None:
     with pytest.raises(NotImplementedError):
         state.deserialize(0)
+
+
+def test_copy_from(state: State) -> None:
+    with pytest.raises(NotImplementedError):
+        state.copy_from(state)

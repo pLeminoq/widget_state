@@ -4,7 +4,6 @@ from widget_state import IntState, DictState
 
 
 class VectorState(DictState):
-
     def __init__(self, x: int, y: int, z: int):
         super().__init__()
 
@@ -36,3 +35,7 @@ def test_set(vector_state: VectorState) -> None:
     assert isinstance(vector_state.x, IntState) and vector_state.x.value == 1
     assert isinstance(vector_state.y, IntState) and vector_state.y.value == 2
     assert isinstance(vector_state.z, IntState) and vector_state.z.value == 3
+
+    vector_state.set(*[], y=IntState(10), z=5)
+    assert isinstance(vector_state.y, IntState) and vector_state.y.value == 10
+    assert isinstance(vector_state.z, IntState) and vector_state.z.value == 5

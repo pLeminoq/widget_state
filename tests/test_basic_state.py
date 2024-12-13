@@ -82,15 +82,15 @@ def test_depends_on(callback: MockCallback) -> None:
     list_state = ListState([IntState(1), IntState(2)])
     float_state = FloatState(3.5)
 
-    def compute_sum() -> float:
+    def compute_sum() -> FloatState:
         _sum = sum(map(lambda _state: _state.value, [float_state, *list_state]))
         assert isinstance(_sum, float)
-        return _sum
+        return FloatState(_sum)
 
     res_state.depends_on(
         [list_state, float_state],
         compute_value=compute_sum,
-        element_wise=True,
+        kwargs={list_state: {"element_wise": True}},
     )
     assert res_state.value == (1 + 2 + 3.5)
 

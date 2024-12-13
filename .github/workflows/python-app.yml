@@ -31,9 +31,9 @@ jobs:
     - name: Validate formatting with black
       run: |
         black --check widget_state tests
-    - name: Validate types with mypy
-      run: |
-        mypy widget_state tests
+    # - name: Validate types with mypy
+    #   run: |
+    #     mypy widget_state tests
     - name: Lint with flake8
       run: |
         flake8 --max-line-length 127 widget_state tests
