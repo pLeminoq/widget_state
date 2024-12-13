@@ -11,6 +11,7 @@ from widget_state import (
     StringState,
     ObjectState,
     HigherOrderState,
+    computed,
 )
 
 from .util import MockCallback
@@ -109,3 +110,21 @@ def test_copy_from(super_state: SuperState) -> None:
     assert super_state.name.value == "Test"
     assert super_state.count.value == 2
     assert super_state.nested.length.value == 2.71
+
+
+def test_computed() -> None:
+    class ExampleState(HigherOrderState):
+        def __init__(self):
+            super().__init__()
+
+            self.a = IntState(0)
+            self.b = IntState(1)
+
+        @computed
+        def sum(self, a: IntState, b: IntState) -> IntState:
+            return IntState(a.value + b.value)
+
+    ex = ExampleState()
+    assert ex.sum.value == 1
+    ex.a.value = 5
+    assert ex.sum.value == 6
