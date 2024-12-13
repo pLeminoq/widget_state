@@ -97,3 +97,15 @@ _str = """\
 def test_to_str(super_state: SuperState) -> None:
     assert super_state.to_str() == _str
     assert str(super_state) == _str
+
+
+def test_copy_from(super_state: SuperState) -> None:
+    new_state = SuperState()
+    new_state.name.value = "Test"
+    new_state.count.value = 2
+    new_state.nested.length.value = 2.71
+
+    super_state.copy_from(new_state)
+    assert super_state.name.value == "Test"
+    assert super_state.count.value == 2
+    assert super_state.nested.length.value == 2.71

@@ -56,13 +56,13 @@ class DictState(HigherOrderState):
     def set(
         self,
         *args: BasicState[Any] | Primitive,
-        **kwargs: dict[str, BasicState[Any] | Primitive],
+        **kwargs: BasicState[Any] | Primitive,
     ) -> None:
         """
         Reassign internal basic state values and only
         trigger a notification afterwards.
         """
-        assert len(args) == len(self)
+        assert len(args) <= len(self)
 
         with self:
             for i, arg in enumerate(args):
