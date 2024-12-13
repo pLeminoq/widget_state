@@ -129,7 +129,7 @@ class State:
         self,
         states: Iterable[State],
         compute_value: Callable[[], Self],
-        kwargs: dict[State, dict[str, Any]],
+        kwargs: dict[State, dict[str, Any]] = {},
     ) -> None:
         """
         Declare that this state depends on other states.
