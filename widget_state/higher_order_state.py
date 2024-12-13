@@ -4,11 +4,55 @@ Definition of a HigherOrderState - a state that groups other states.
 
 from __future__ import annotations
 
-from typing import Any, Union
+import inspect
+from typing import Any, Callable, Union, ParamSpec, TypeVar
+from typing_extensions import Self
 
 from .basic_state import BASIC_STATE_DICT, BasicState, ObjectState
 from .state import State
 from .types import Serializable
+
+T = TypeVar("T", bound=State)
+P = ParamSpec("P")
+
+
+def computed(func: Callable[P, T]) -> Callable[P, T]:
+    """
+    Mark a function of a `HigherOrderState` as computed.
+
+    This means that the value computed by this function will be added to
+    the state as an attribute. It is available once all parameters have
+    been set as attributes to the state.
+
+    Example:
+    class ExampleState(HigherOrderState):
+
+        def __init__(self):
+            super().__init__()
+
+            self.a = IntState(0)
+            self.b = IntState(1)
+
+        @computed
+        def sum(self, a: IntState, b: IntState) -> IntState:
+            return IntState(a.value + b.value)
+
+    ex = ExampleState()
+    assert ex.sum.value == 1
+    ex.a.value = 5
+    assert ex.sum.value == 6
+    """
+    setattr(func, "is_computed_state", True)
+    setattr(
+        func,
+        "params",
+        list(
+            filter(
+                lambda name: name != "self", inspect.signature(func).parameters.keys()
+            )
+        ),
+    )
+    return func
 
 
 class HigherOrderState(State):
@@ -19,6 +63,11 @@ class HigherOrderState(State):
     If a value (not a state) is added to a higher state, it will automatically be wrapped into
     a state type.
     """
+
+    def __init__(self):
+        super().__init__()
+
+        self._computed_states = {}
 
     def __setattr__(self, name: str, new_value: Union[Any, State]) -> None:
         # ignore private attributes (begin with an underscore)
@@ -112,3 +161,16 @@ class HigherOrderState(State):
         return f"[{type(self).__name__}]:\n{_padding} - " + f"\n{_padding} - ".join(
             _strs
         )
+
+    def copy_from(self, other: Self) -> None:
+        assert type(self) is type(
+            other
+        ), "`copy_from` needs other[type(self)] to be same type as self[{type(self)}]"
+
+        with self:
+            dict_self = self.dict()
+            dict_other = other.dict()
+
+            for key, value in dict_self.items():
+                # print(f" - {key}: {value}")
+                value.copy_from(dict_other[key])

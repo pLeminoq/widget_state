@@ -4,7 +4,8 @@ Definition of the basic state class.
 
 from __future__ import annotations
 
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Iterable, List, Optional, Union
+from typing_extensions import Self
 
 from .types import Serializable
 
@@ -118,3 +119,35 @@ class State:
         raise NotImplementedError(
             "Deserialize not implemented for abtract base class `State`"
         )
+
+    def copy_from(self, other: Self) -> None:
+        raise NotImplementedError(
+            "`copy_from` not implemented in abstract base class `State`"
+        )
+
+    def depends_on(
+        self,
+        states: Iterable[State],
+        compute_value: Callable[[], Self],
+        kwargs: dict[State, dict[str, Any]],
+    ) -> None:
+        """
+        Declare that this state depends on other states.
+
+        This state is updated by the `compute_value` callable whenever one of the
+        states it depends on changes.
+
+        Parameters
+        ----------
+        states: iterator of states
+            the states self depends on
+        compute_value: callable
+            function which computes the value of this state
+        element_wise: bool
+            trigger on element-wise changes of `ListState`
+        """
+        for state in states:
+            _kwargs = {} if state not in kwargs else kwargs[state]
+            state.on_change(lambda _: self.copy_from(compute_value()), **_kwargs)
+
+        self.copy_from(compute_value())

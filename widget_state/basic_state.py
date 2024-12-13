@@ -5,11 +5,10 @@ Either a generic object or a primitive.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
 from typing import Any, Callable, Generic, Optional, TypeVar
+from typing_extensions import Self
 
 from .state import State
-from .list_state import ListState
 from .types import Serializable
 
 T = TypeVar("T")
@@ -79,38 +78,6 @@ class BasicState(State, Generic[T]):
         """
         self.value = value
 
-    def depends_on(
-        self,
-        states: Iterable[State],
-        compute_value: Callable[[], T],
-        element_wise: bool = False,
-    ) -> None:
-        """
-        Declare that this state depends on other states.
-
-        This state is updated by the `compute_value` callable whenever one of the
-        states it depends on changes.
-
-        Parameters
-        ----------
-        states: iterator of states
-            the states self depends on
-        compute_value: callable
-            function which computes the value of this state
-        element_wise: bool
-            trigger on element-wise changes of `ListState`
-        """
-        for state in states:
-            if isinstance(state, ListState):
-                state.on_change(
-                    lambda _: self.set(compute_value()), element_wise=element_wise
-                )
-                continue
-
-            state.on_change(lambda _: self.set(compute_value()))
-
-        self.set(compute_value())
-
     def transform(
         self, self_to_other: Callable[[BasicState[T]], BasicState[R]]
     ) -> BasicState[R]:
@@ -146,6 +113,12 @@ class BasicState(State, Generic[T]):
 
     def deserialize(self, _dict: Serializable) -> None:
         raise NotImplementedError("Unable to deserialize abstract basic state")
+
+    def copy_from(self, other: Self) -> None:
+        assert type(self) is type(
+            other
+        ), "`copy_from` needs other[type(self)] to be same type as self[{type(self)}]"
+        self.value = other.value
 
 
 class IntState(BasicState[int]):

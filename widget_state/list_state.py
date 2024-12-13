@@ -8,6 +8,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 import typing
 from typing import Any, Callable, Generic, Optional, TypeVar, Union
+from typing_extensions import Self
 
 from .state import State
 from .types import Serializable
@@ -67,6 +68,7 @@ class ListState(State, Generic[T]):
         trigger: bool = False,
         element_wise: bool = False,
     ) -> int:
+        print(f"On change with {element_wise=}")
         if element_wise:
             self._elem_obs._callbacks.append(callback)
 
@@ -112,7 +114,7 @@ class ListState(State, Generic[T]):
 
         self.notify_change()
 
-    def extend(self, _list: list[T]) -> None:
+    def extend(self, _list: list[T] | Self) -> None:
         """
         Extend the list and notify.
 
@@ -238,3 +240,12 @@ class ListState(State, Generic[T]):
         raise NotImplementedError(
             "Unable to deserialize general list state. Types of elements are unknown."
         )
+
+    def copy_from(self, other: Self) -> None:
+        assert type(self) is type(
+            other
+        ), "`copy_from` needs other[type(self)] to be same type as self[{type(self)}]"
+
+        with self:
+            self.clear()
+            self.extend(other)
