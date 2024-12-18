@@ -74,6 +74,8 @@ class HigherOrderState(State):
                 inspect.getmembers(self),
             )
         )
+        # self._access_count = dict([(name, 0) for name in self._computed_states.keys()])
+        # print(f"{self.__class__.__name__}: {self._access_count=}, {self._computed_states.keys()=}")
 
     def _update_computed_state(self, name: str) -> None:
         func = self._computed_states[name]
@@ -137,6 +139,20 @@ class HigherOrderState(State):
 
             # initialize computed state
             self.__setattr__(computed_state_name, func(*params))
+
+    def __getattribute__(self, name) -> Any:
+        attr = super().__getattribute__(name)
+
+        if inspect.ismethod(attr) and hasattr(attr, "is_computed_state"):
+            """
+            TODO:
+              * activate when a debug flag is set?
+              * is is possible to make this check only after the init method of the subclass?
+            """
+            # print(f"Warning: access to not yet initialized computed state: {name}!")
+
+        # print(f"HO get attr {name=}, {type(attr)=}")
+        return attr
 
     def dict(self) -> dict[str, State]:
         """
@@ -206,12 +222,11 @@ class HigherOrderState(State):
     def copy_from(self, other: Self) -> None:
         assert type(self) is type(
             other
-        ), "`copy_from` needs other[type(self)] to be same type as self[{type(self)}]"
+        ), f"`copy_from` needs other[type(other)] to be same type as self[{type(self)}]"
 
         with self:
             dict_self = self.dict()
             dict_other = other.dict()
 
             for key, value in dict_self.items():
-                # print(f" - {key}: {value}")
                 value.copy_from(dict_other[key])
