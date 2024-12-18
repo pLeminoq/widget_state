@@ -68,7 +68,6 @@ class ListState(State, Generic[T]):
         trigger: bool = False,
         element_wise: bool = False,
     ) -> int:
-        print(f"On change with {element_wise=}")
         if element_wise:
             self._elem_obs._callbacks.append(callback)
 
@@ -244,7 +243,7 @@ class ListState(State, Generic[T]):
     def copy_from(self, other: Self) -> None:
         assert type(self) is type(
             other
-        ), "`copy_from` needs other[type(self)] to be same type as self[{type(self)}]"
+        ), f"`copy_from` needs other[type(other)] to be same type as self[{type(self)}]"
 
         with self:
             self.clear()
