@@ -7,13 +7,15 @@ If one of these states changes, the compute state is computed anew.
 
 from __future__ import annotations
 
-from typing import Any, Callable, ParamSpec, TypeVar
+from typing import Any, Callable, Iterable, ParamSpec, TypeVar
 
 from .basic_state import BasicState
 from .state import State
 
 T = TypeVar("T", bound=BasicState[Any])
 P = ParamSpec("P")
+
+S = TypeVar("S", bound=State)
 
 
 def computed_state(
@@ -64,3 +66,17 @@ def computed_state(
         return computed_value
 
     return wrapped
+
+
+def compute(
+    states: Iterable[State],
+    compute_value: Callable[[], S],
+    kwargs: dict[State, dict[str, Any]] = {},
+) -> S:
+    res = compute_value()
+
+    for state in states:
+        _kwargs = {} if state not in kwargs else kwargs[state]
+        state.on_change(lambda _: res.copy_from(compute_value()), **_kwargs)
+
+    return res
