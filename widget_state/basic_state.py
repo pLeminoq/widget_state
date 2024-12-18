@@ -117,7 +117,7 @@ class BasicState(State, Generic[T]):
     def copy_from(self, other: Self) -> None:
         assert type(self) is type(
             other
-        ), "`copy_from` needs other[type(self)] to be same type as self[{type(self)}]"
+        ), f"`copy_from` needs other[{type(other)=}] to be same type as self[{type(self)=}]"
         self.value = other.value
 
 
@@ -156,6 +156,9 @@ class FloatState(BasicState[float]):
     def serialize(self) -> float:
         assert isinstance(self.value, float)
         return self.value
+
+    def round(self) -> IntState:
+        return self.transform(lambda _: IntState(round(self.value)))
 
 
 class StringState(BasicState[str]):
