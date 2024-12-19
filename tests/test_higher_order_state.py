@@ -120,6 +120,8 @@ def test_computed() -> None:
             self.a = IntState(0)
             self.b = IntState(1)
 
+            self._validate_computed_states()
+
         @computed
         def sum(self, a: IntState, b: IntState) -> IntState:
             return IntState(a.value + b.value)

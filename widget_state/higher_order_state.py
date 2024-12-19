@@ -74,13 +74,35 @@ class HigherOrderState(State):
                 inspect.getmembers(self),
             )
         )
-        # self._access_count = dict([(name, 0) for name in self._computed_states.keys()])
-        # print(f"{self.__class__.__name__}: {self._access_count=}, {self._computed_states.keys()=}")
 
     def _update_computed_state(self, name: str) -> None:
         func = self._computed_states[name]
         params = list(map(lambda param_name: getattr(self, param_name), func.params))
         self.__dict__[name].copy_from(func(*params))
+
+    def _validate_computed_states(self) -> None:
+        """
+        Validate that all computed state are correctly initialized.
+
+        This can be useful because errors of states depending on other
+        computed states are difficult to detect: The computed state
+        remains a method.
+        Thus, this method can validate that all computed states are
+        initialized. But, it needs to be called at the end of __init__.
+        """
+        for name, func in self._computed_states.items():
+            attr = getattr(self, name)
+
+            if not inspect.ismethod(attr):
+                continue
+
+            param_names = list(
+                filter(lambda param_name: not hasattr(self, param_name), func.params)
+            )
+            class_name = self.__class__.__name__
+            assert (
+                False
+            ), f"Computed state `{name}` of `{class_name}` is not initialized after init! Missing params {param_names}!"
 
     def __setattr__(self, name: str, value: Union[Any, State]) -> None:
         # ignore private attributes (begin with an underscore)
@@ -139,20 +161,6 @@ class HigherOrderState(State):
 
             # initialize computed state
             self.__setattr__(computed_state_name, func(*params))
-
-    def __getattribute__(self, name) -> Any:
-        attr = super().__getattribute__(name)
-
-        if inspect.ismethod(attr) and hasattr(attr, "is_computed_state"):
-            """
-            TODO:
-              * activate when a debug flag is set?
-              * is is possible to make this check only after the init method of the subclass?
-            """
-            # print(f"Warning: access to not yet initialized computed state: {name}!")
-
-        # print(f"HO get attr {name=}, {type(attr)=}")
-        return attr
 
     def dict(self) -> dict[str, State]:
         """
