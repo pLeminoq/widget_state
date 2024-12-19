@@ -18,7 +18,7 @@ from .higher_order_state import HigherOrderState, computed
 from .list_state import ListState
 from .state import State
 from .types import Serializable, Primitive
-from .util import computed_state, compute
+from .util import compute
 
 __all__ = [
     "BASIC_STATE_DICT",
@@ -34,7 +34,6 @@ __all__ = [
     "State",
     "Serializable",
     "Primitive",
-    "computed_state",
     "computed",
     "compute",
 ]
