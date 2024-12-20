@@ -159,8 +159,13 @@ class HigherOrderState(State):
                     )
                 )
 
-            # initialize computed state
-            self.__setattr__(computed_state_name, func(*params))
+            # initialize and validate computed state
+            computed_state = func(*params)
+            assert isinstance(
+                computed_state, State
+            ), f"Function for computed state {computed_state_name} on {self.__class__.__name__} \
+returns non-state value {type(computed_state)}"
+            self.__setattr__(computed_state_name, computed_state)
 
     def dict(self) -> dict[str, State]:
         """
@@ -193,9 +198,7 @@ class HigherOrderState(State):
                 attr = getattr(self, key)
 
                 if issubclass(type(attr), BasicState):
-                    attr._active = False
                     attr.value = value
-                    attr._active = True
                     continue
 
                 attr.deserialize(value)
