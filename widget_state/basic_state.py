@@ -10,6 +10,7 @@ from typing_extensions import Self
 
 from .state import State
 from .types import Serializable
+from .util import compute
 
 T = TypeVar("T")
 R = TypeVar("R")
@@ -79,7 +80,9 @@ class BasicState(State, Generic[T]):
         self.value = value
 
     def transform(
-        self, self_to_other: Callable[[BasicState[T]], BasicState[R]]
+        self,
+        self_to_other: Callable[[BasicState[T]], BasicState[R]],
+        other_to_self: Callable[[BasicState[R]], BasicState[T]] = None,
     ) -> BasicState[R]:
         """
         Transform this state into another state.
@@ -90,20 +93,22 @@ class BasicState(State, Generic[T]):
         ----------
         self_to_other: Callable
             a function that transforms this state into a different state
-
+        other_to_self: Callable
+            a function that transforms this state back to self
+            note that the mapping must be bidirectional, since otherwise updating
+            one value creates an infinite notification loop.
 
         Returns
         -------
         BasicState
         """
-        other_state = self_to_other(self)
+        other = self_to_other(self)
 
-        def _callback(_self: State) -> None:
-            assert isinstance(_self, BasicState)
-            other_state.set(self_to_other(_self).value)
+        self.on_change(lambda _: other.set(self_to_other(self).value))
+        if other_to_self is not None:
+            other.on_change(lambda _: self.set(other_to_self(other).value))
 
-        self.on_change(_callback)
-        return other_state
+        return other
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}[value={self.value}]"
@@ -121,13 +126,55 @@ class BasicState(State, Generic[T]):
         self.value = other.value
 
 
-class IntState(BasicState[int]):
+NT = TypeVar("NT", int, float)
+
+
+class NumberState(BasicState[NT]):
+
+    def __init__(self, value: NT, precision: Optional[int] = None) -> None:
+        self._precision = precision
+
+        super().__init__(value, verify_change=True)
+
+    def __add__(self, other: NumberState[NT]):
+        return compute([self, other], lambda: NumberState(self.value + other.value))
+
+    def __sub__(self, other: NumberState[NT]):
+        return compute([self, other], lambda: NumberState(self.value - other.value))
+
+    def __mul__(self, other: NumberState[NT]):
+        return compute([self, other], lambda: NumberState(self.value * other.value))
+
+    def __truediv__(self, other: NumberState[NT]):
+        return compute([self, other], lambda: NumberState(self.value / other.value))
+
+    def __mod__(self, other: NumberState[NT]):
+        return compute([self, other], lambda: NumberState(self.value % other.value))
+
+    def __floordiv__(self, other: NumberState[NT]):
+        return compute([self, other], lambda: NumberState(self.value // other.value))
+
+    def __pow__(self, other: NumberState[NT]):
+        print(f"Pow?")
+        return compute([self, other], lambda: NumberState(self.value ** other.value))
+
+    def serialize(self) -> NT:
+        return self.value
+
+    def round(self) -> NumberState[int]:
+        return self.transform(lambda _: IntState(round(self.value)))
+
+    def str(self, format_str: str = "{}") -> StringState:
+        return self.transform(lambda _: StringState(format_str.format(self.value)))
+
+
+class IntState(NumberState[int]):
     """
     Implementation of the `BasicState` for an int.
     """
 
     def __init__(self, value: int) -> None:
-        super().__init__(value, verify_change=True)
+        super().__init__(value)
 
     def serialize(self) -> int:
         assert isinstance(self.value, int)
@@ -205,7 +252,7 @@ class ObjectState(BasicState[Any]):
 # Mapping of primitive values types to their states.
 BASIC_STATE_DICT = {
     str: StringState,
-    int: IntState,
-    float: FloatState,
+    int: NumberState,
+    float: NumberState,
     bool: BoolState,
 }

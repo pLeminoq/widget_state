@@ -12,6 +12,7 @@ from .basic_state import (
     StringState,
     BoolState,
     ObjectState,
+    NumberState,
 )
 from .dict_state import DictState
 from .higher_order_state import HigherOrderState, computed
@@ -36,4 +37,5 @@ __all__ = [
     "Primitive",
     "computed",
     "compute",
+    "NumberState",
 ]
