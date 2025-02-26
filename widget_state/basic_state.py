@@ -130,7 +130,6 @@ NT = TypeVar("NT", int, float)
 
 
 class NumberState(BasicState[NT]):
-
     def __init__(self, value: NT, precision: Optional[int] = None) -> None:
         self._precision = precision
 
@@ -168,6 +167,13 @@ class NumberState(BasicState[NT]):
 
     def str(self, format_str: str = "{}") -> StringState:
         return self.transform(lambda _: StringState(format_str.format(self.value)))
+
+    def __setattr__(self, name: str, new_value: NT) -> None:
+        if name == "value" and self._precision is not None:
+            # apply precision if defined
+            new_value = round(new_value, ndigits=self._precision)
+
+        super().__setattr__(name, new_value)
 
 
 class IntState(NumberState[int]):

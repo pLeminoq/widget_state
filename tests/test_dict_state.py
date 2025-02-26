@@ -1,6 +1,6 @@
 import pytest
 
-from widget_state import IntState, DictState
+from widget_state import NumberState, DictState
 
 
 class VectorState(DictState):
@@ -18,7 +18,7 @@ def vector_state() -> VectorState:
 
 
 def test_getitem(vector_state: VectorState) -> None:
-    assert isinstance(vector_state[1], IntState)
+    assert isinstance(vector_state[1], NumberState)
     assert vector_state[1].value == 20
 
 
@@ -32,10 +32,10 @@ def test_values(vector_state: VectorState) -> None:
 
 def test_set(vector_state: VectorState) -> None:
     vector_state.set(1, 2, 3)
-    assert isinstance(vector_state.x, IntState) and vector_state.x.value == 1
-    assert isinstance(vector_state.y, IntState) and vector_state.y.value == 2
-    assert isinstance(vector_state.z, IntState) and vector_state.z.value == 3
+    assert isinstance(vector_state.x, NumberState) and vector_state.x.value == 1
+    assert isinstance(vector_state.y, NumberState) and vector_state.y.value == 2
+    assert isinstance(vector_state.z, NumberState) and vector_state.z.value == 3
 
-    vector_state.set(*[], y=IntState(10), z=5)
-    assert isinstance(vector_state.y, IntState) and vector_state.y.value == 10
-    assert isinstance(vector_state.z, IntState) and vector_state.z.value == 5
+    vector_state.set(*[], y=NumberState(10), z=5)
+    assert isinstance(vector_state.y, NumberState) and vector_state.y.value == 10
+    assert isinstance(vector_state.z, NumberState) and vector_state.z.value == 5

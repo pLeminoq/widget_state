@@ -2,10 +2,9 @@ import pytest
 
 from widget_state import (
     BasicState,
-    IntState,
+    NumberState,
     StringState,
     BoolState,
-    FloatState,
     ObjectState,
     ListState,
     Serializable,
@@ -20,33 +19,33 @@ def callback() -> MockCallback:
 
 
 @pytest.fixture
-def int_state(callback: MockCallback) -> IntState:
-    int_state = IntState(0)
-    int_state.on_change(callback)
-    return int_state
+def number_state(callback: MockCallback) -> NumberState:
+    number_state = NumberState(0)
+    number_state.on_change(callback)
+    return number_state
 
 
-def test_verify_change(int_state: IntState, callback: MockCallback) -> None:
+def test_verify_change(number_state: NumberState, callback: MockCallback) -> None:
     _value = 5
-    int_state.value = _value
+    number_state.value = _value
     assert callback.n_calls == 1
 
-    int_state.value = _value
+    number_state.value = _value
     assert callback.n_calls == 1
 
 
-def test_set(int_state: IntState, callback: MockCallback) -> None:
-    int_state.set(4)
+def test_set(number_state: NumberState, callback: MockCallback) -> None:
+    number_state.set(4)
     assert callback.n_calls == 1
-    assert isinstance(callback.arg, IntState)
+    assert isinstance(callback.arg, NumberState)
     assert callback.arg.value == 4
 
 
 @pytest.mark.parametrize(
     "state,expected",
     [
-        (IntState(2), "IntState[value=2]"),
-        (FloatState(3.141), "FloatState[value=3.141]"),
+        (NumberState(2), "NumberState[value=2]"),
+        (NumberState(3.141), "NumberState[value=3.141]"),
         (StringState("Hello World"), 'StringState[value="Hello World"]'),
         (BoolState(False), "BoolState[value=False]"),
         (ObjectState([]), "ObjectState[value=[]]"),
@@ -59,8 +58,8 @@ def test_repr(state: BasicState, expected: str) -> None:
 @pytest.mark.parametrize(
     "state,expected",
     [
-        (IntState(2), 2),
-        (FloatState(3.141), 3.141),
+        (NumberState(2), 2),
+        (NumberState(3.141), 3.141),
         (StringState("Hello World"), "Hello World"),
         (BoolState(False), False),
     ],
@@ -76,43 +75,45 @@ def test_serialize_with_object_state() -> None:
 
 
 def test_depends_on(callback: MockCallback) -> None:
-    res_state = FloatState(0.0)
+    res_state = NumberState(0.0)
     res_state.on_change(callback)
 
-    list_state = ListState([IntState(1), IntState(2)])
-    float_state = FloatState(3.5)
+    list_state = ListState([NumberState(1), NumberState(2)])
+    number_state = NumberState(3.5)
 
-    def compute_sum() -> FloatState:
-        _sum = sum(map(lambda _state: _state.value, [float_state, *list_state]))
+    def compute_sum() -> NumberState:
+        _sum = sum(map(lambda _state: _state.value, [number_state, *list_state]))
         assert isinstance(_sum, float)
-        return FloatState(_sum)
+        return NumberState(_sum)
 
     res_state.depends_on(
-        [list_state, float_state],
+        [list_state, number_state],
         compute_value=compute_sum,
         kwargs={list_state: {"element_wise": True}},
     )
     assert res_state.value == (1 + 2 + 3.5)
 
-    float_state.value = 2.4
+    number_state.value = 2.4
     assert res_state.value == (1 + 2 + 2.4)
 
     list_state[0].value = 3
     assert res_state.value == (3 + 2 + 2.4)
 
 
-def test_transform(int_state: IntState, callback: MockCallback) -> None:
-    transformed_state = int_state.transform(lambda state: IntState(state.value**2))
+def test_transform(number_state: NumberState, callback: MockCallback) -> None:
+    transformed_state = number_state.transform(
+        lambda state: NumberState(state.value**2)
+    )
     assert transformed_state.value == 0
 
-    int_state.value = 3
+    number_state.value = 3
     assert transformed_state.value == 9
 
 
-def test_float_state_precision() -> None:
-    float_state = FloatState(3.141, precision=2)
+def test_number_state_precision() -> None:
+    number_state = NumberState(3.141, precision=2)
 
-    assert float_state.value == 3.14
+    assert number_state.value == 3.14
 
-    float_state.value = 2.745
-    assert float_state.value == 2.75
+    number_state.value = 2.745
+    assert number_state.value == 2.75
