@@ -155,8 +155,10 @@ class NumberState(BasicState[NT]):
         return compute([self, other], lambda: NumberState(self.value // other.value))
 
     def __pow__(self, other: NumberState[NT]):
-        print(f"Pow?")
-        return compute([self, other], lambda: NumberState(self.value ** other.value))
+        return compute([self, other], lambda: NumberState(self.value**other.value))
+
+    def __neg__(self):
+        return compute([self], lambda: NumberState(-self.value))
 
     def serialize(self) -> NT:
         return self.value
